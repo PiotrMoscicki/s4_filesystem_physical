@@ -54,12 +54,12 @@ FetchContent_Declare(
 )
 include(FetchContent)
 FetchContent_Declare(
-  s4_filesystem
-  GIT_REPOSITORY "https://github.com/PiotrMoscicki/s4_filesystem"
+  s4_fs
+  GIT_REPOSITORY "https://github.com/PiotrMoscicki/s4_fs"
   GIT_TAG "main"
 )
 
-FetchContent_MakeAvailable(Catch2 s4_filesystem)
+FetchContent_MakeAvailable(Catch2 s4_fs)
 list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/extras)
 
 # Target names

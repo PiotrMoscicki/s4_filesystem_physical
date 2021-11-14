@@ -11,4 +11,4 @@ add_library(${S4_FILESYSTEM_NATIVE_TARGET} STATIC ${S4_FILESYSTEM_NATIVE_SRCS})
 target_compile_features(${S4_FILESYSTEM_NATIVE_TARGET} PUBLIC cxx_std_20)
 target_include_directories(${S4_FILESYSTEM_NATIVE_TARGET} PUBLIC ${S4_FILESYSTEM_NATIVE_INCLUDE})
 
-target_link_libraries(${S4_FILESYSTEM_NATIVE_TARGET} PUBLIC s4_filesystem)
+target_link_libraries(${S4_FILESYSTEM_NATIVE_TARGET} PUBLIC s4_fs)
