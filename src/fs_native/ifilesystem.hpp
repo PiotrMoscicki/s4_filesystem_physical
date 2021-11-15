@@ -3,6 +3,7 @@
 #include <string>
 #include <sstream>
 #include <variant>
+#include <optional>
 
 #include <rtti/rtti.hpp>
 
@@ -43,33 +44,116 @@ namespace fs {
     enum class ErrWrite {
         UNDEFINED
     };
+    
+    //*********************************************************************************************
+    //*********************************************************************************************
+    //*********************************************************************************************
+    template <typename OK = void>
+	class Ok final
+	{
+	public:
+		Ok() = delete;
+		Ok(Ok&) = delete;
+		constexpr Ok(Ok&&) = default;
+		Ok& operator=(Ok&) = delete;
+		Ok& operator=(Ok&&) = delete;
+
+		explicit constexpr Ok(OK val) : m_value(std::move(val)) {}
+
+		constexpr OK&& get() && { return std::move(m_value); }
+
+	private:
+		OK m_value;
+	};
+
+    //*********************************************************************************************
+	template <>
+	class Ok<void> final
+	{
+	public:
+		constexpr Ok() = default;
+		Ok(Ok&) = delete;
+		constexpr Ok(Ok&&) = default;
+		Ok& operator=(Ok&) = delete;
+		Ok& operator=(Ok&&) = delete;
+	};
+
+	Ok()->Ok<void>;
 
     //*********************************************************************************************
     //*********************************************************************************************
     //*********************************************************************************************
-    class Ok {
+	template <typename ERR>
+	class Err final
+	{
+	public:
+		Err() = delete;
+		Err(Err&) = delete;
+		constexpr Err(Err&&) = default;
+		Err& operator=(Err&) = delete;
+		Err& operator=(Err&&) = delete;
 
-    };
+		explicit constexpr Err(ERR val) : m_value(std::move(val)) {}
+
+		constexpr ERR&& get() && { return std::move(m_value); }
+
+	private:
+		ERR m_value;
+	};
 
     //*********************************************************************************************
     //*********************************************************************************************
     //*********************************************************************************************
     template <typename OK, typename ERR>
-    class Res final {
-    public:
-        Res(OK ok) : m_result(std::move(ok)) {}
-        Res(ERR err) : m_result(std::move(err)) {}
+	class Res final
+	{
+	public:
+		Res() = delete;
+		constexpr Res(Res&) = default;
+		constexpr Res(Res&&) = default;
+		constexpr Res& operator=(Res&) = default;
+		constexpr Res& operator=(Res&&) = default;
+		constexpr Res(Ok<OK> ok) : m_value(std::move(ok).get()) {}
+		constexpr Res(Err<ERR> err) : m_value(std::move(err).get()) {}
 
-        bool is_ok() const { return std::holds_alternative<OK>(m_result); }
-        bool is_err() const { return std::holds_alternative<ERR>(m_result); }
+		constexpr bool is_ok() const { return m_value.index() == 0; }
+		constexpr bool is_err() const { return m_value.index() == 1; }
 
-        const OK& ok() const { return std::get<OK>(m_result); }
-        const ERR& err() const { return std::get<ERR>(m_result); }
+		constexpr OK& ok() & { return std::get<OK>(m_value); }
+		constexpr const OK& ok() const & { return std::get<OK>(m_value); }
+		constexpr OK&& ok() && { return std::get<OK>(std::move(m_value)); }
 
-    private:
-        std::variant<OK, ERR> m_result;
+		constexpr ERR& err() & { return std::get<ERR>(m_value); }
+		constexpr const ERR& err() const & { return std::get<ERR>(m_value); }
+		constexpr ERR&& err() && { return std::get<ERR>(std::move(m_value)); }
 
-    }; // class Result
+	private:
+		std::variant<OK, ERR> m_value;
+	};
+
+    //*********************************************************************************************
+	template <typename ERR>
+	class Res<void, ERR> final
+	{
+	public:
+		constexpr Res() = delete;
+		constexpr Res(Res&) = default;
+		constexpr Res(Res&&) = default;
+		constexpr Res& operator=(Res&) = default;
+		constexpr Res& operator=(Res&&) = default;
+		constexpr Res(Ok<void> ok) {}
+		constexpr Res(Err<ERR> err) : m_value(std::move(err).get()) {}
+
+		constexpr bool is_ok() const { return !is_err(); }
+		constexpr bool is_err() const { return m_value.has_value(); }
+        
+		constexpr ERR& err() & { return m_value.value(); }
+		constexpr const ERR& err() const & { return m_value.value(); }
+		constexpr ERR&& err() && { return std::move(m_value).value(); }
+
+	private:
+		std::optional<ERR> m_value;
+	};
 
     //*********************************************************************************************
     //*********************************************************************************************
@@ -116,12 +200,12 @@ namespace fs {
         virtual bool is_file(const Path& path) const = 0;
 
         virtual Res<Path, ErrAdd> add(const Path& parent, const std::string& relative_path) = 0;
-        virtual Res<Ok, ErrRemove> remove(const Path& path) = 0;
+        virtual Res<void, ErrRemove> remove(const Path& path) = 0;
         virtual Res<Path, ErrRename> rename(const Path& path, const std::string& new_name) = 0;
         virtual Res<Path, ErrMove> move(const Path& path, const Path& new_parent) = 0;
 
         virtual Res<rtti::Buffer, ErrRead> read(const Path& path) const = 0;
-        virtual Res<Ok, ErrWrite> write(const Path& path, const rtti::Buffer& buf) const = 0;
+        virtual Res<void, ErrWrite> write(const Path& path, const rtti::Buffer& buf) const = 0;
 
     }; // class IFilesystem
 
