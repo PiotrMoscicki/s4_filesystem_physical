@@ -3,25 +3,29 @@
 #include <vector>
 #include <filesystem>
 
-#include "ifilesystem.hpp"
+#include <fs/ifilesystem.hpp>
+#include <core/str/string_id.hpp>
 
 namespace fs::native {
 
-    enum class ErrMount {
-        ALREADY_MOUNTED,
-        INVALID_NAME,
-        MOUNT_POINT_DOESNT_EXIST
-    };
-
-    enum class ErrUnmount {
-        UNDEFINED
-    };
+    using namespace core::str;
 
     //*********************************************************************************************
     //*********************************************************************************************
     //*********************************************************************************************
     class Filesystem : public IFilesystem {
     public:
+
+        enum class ErrMount {
+            ALREADY_MOUNTED,
+            INVALID_NAME,
+            MOUNT_POINT_DOESNT_EXIST
+        };
+
+        enum class ErrUnmount {
+            UNDEFINED
+        };
+
         Res<void, ErrMount> mount(std::filesystem::path mount_point, std::string name);
         Res<void, ErrUnmount> unmount(const std::string& name);
 
@@ -42,7 +46,7 @@ namespace fs::native {
         Res<void, ErrWrite> write(const Path& path, const rtti::Buffer& buf) const override;
 
     private:
-        std::vector<std::string> m_names; 
+        std::vector<StringId> m_mount_points_names; 
         std::vector<std::filesystem::path> m_mount_points;
 
     }; // class IFilesystem
