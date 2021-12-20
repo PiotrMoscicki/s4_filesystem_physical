@@ -3,7 +3,7 @@
 mkdir build
 cd build
 cmake ..
-make
+make -j16
 if [ $? = 0 ]
 then
     ctest --output-on-failure

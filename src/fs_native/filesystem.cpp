@@ -29,8 +29,11 @@ Path Filesystem::root() const {
 }
 
 //*************************************************************************************************
-Res<Path, IFilesystem::ErrParent> Filesystem::parent(const Path& /*path*/) const {
-    return Err(ErrParent::UNDEFINED);
+Res<Path, IFilesystem::ErrParent> Filesystem::parent(const Path& path) const {
+    if (path == root())
+        return Err(ErrParent::PATH_IS_ROOT);
+    else
+        return Err(ErrParent::PATH_IS_ROOT);
 }
 
 //*************************************************************************************************
@@ -43,17 +46,23 @@ Res<size_t, IFilesystem::ErrChildrenCount> Filesystem::children_count(const Path
 
 //*************************************************************************************************
 Res<Path, IFilesystem::ErrChild> Filesystem::child(const Path& /*path*/, size_t /*idx*/) const {
-    return Err(ErrChild::UNDEFINED);
+    return Err(ErrChild::PATH_HAS_NO_CHILDREN);
 }
 
 //*************************************************************************************************
-bool Filesystem::is_dir(const Path& /*path*/) const {
-    return false;
+bool Filesystem::is_dir(const Path& path) const {
+    if (path == root())
+        return true;
+    else
+        return false;
 }
 
 //*************************************************************************************************
-bool Filesystem::is_file(const Path& /*path*/) const {
-    return false;
+bool Filesystem::is_file(const Path& path) const {
+    if (path == root())
+        return false;
+    else
+        return false;
 }
 
 //*************************************************************************************************
